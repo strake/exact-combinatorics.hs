@@ -83,7 +83,7 @@ factorial :: (Integral a, Bits a) => Int -> a
 factorial n
     | n < 0     = 0
     | n < 2     = 1
-    | otherwise = go (highestBitPosition_Int n - 1) 0 0 1 1 1 1
+    | otherwise = go (highestBitPosition n - 1) 0 0 1 1 1 1
     where
     -- lo  == n/2^(k+1)
     -- lo' == n/2^k
@@ -126,70 +126,15 @@ factorial n
         (<!>) = ($!) -- fix associativity
 
 {-
-floorLog2 :: (Integral a, Bits a) => a -> Int
+floorLog2 :: (Integral a, FiniteBits a) => a -> Int
 floorLog2 n
     | n <= 0    = error "floorLog2: argument must be positive"
     | otherwise = highestBitPosition n - 1
-
-highestBitPosition :: (Integral a, Bits a) => a -> Int
-{-# INLINE highestBitPosition #-}
-{-# SPECIALIZE highestBitPosition :: Int -> Int #-}
-highestBitPosition n0
-    | n0 <  0   = error _highestBitPosition_negative
-    | n0 == 0   = 1
-    | otherwise = go 0 n0
-    where
-    go d n
-        | Just a <- d `seq` n `seq` Nothing = a
-        | n > 0     = go (d+1) (n `shiftR` 1)
-        | otherwise = d
-
-_highestBitPosition_negative :: String
-{-# NOINLINE _highestBitPosition_negative #-}
-_highestBitPosition_negative =
-    "highestBitPosition: argument must be non-negative"
-
-floorLog2_Int :: Int -> Int
-floorLog2_Int n
-    | n <= 0    = error "floorLog2_Int: argument must be positive"
-    | otherwise = highestBitPosition_Int n - 1
 -}
 
-highestBitPosition_Int :: Int -> Int
-highestBitPosition_Int w =
-    if w < 1 `shiftL` 15
-    then if w < 1 `shiftL` 7
-        then if w < 1 `shiftL` 3
-            then if w < 1 `shiftL` 1
-                then if w < 1 `shiftL` 0
-                    then if w < 0 then 32 else 0 -- N.B., Int semantics
-                    else 1
-                else if w < 1 `shiftL` 2  then 2 else 3
-            else if w < 1 `shiftL` 5
-                then if w < 1 `shiftL` 4  then 4 else 5
-                else if w < 1 `shiftL` 6  then 6 else 7
-        else if w < 1 `shiftL` 11
-            then if w < 1 `shiftL` 9
-                then if w < 1 `shiftL` 8  then 8  else 9
-                else if w < 1 `shiftL` 10 then 10 else 11
-            else if w < 1 `shiftL` 13
-                then if w < 1 `shiftL` 12 then 12 else 13
-                else if w < 1 `shiftL` 14 then 14 else 15
-    else if w < 1 `shiftL` 23
-        then if w < 1 `shiftL` 19
-            then if w < 1 `shiftL` 17
-                then if w < 1 `shiftL` 16 then 16 else 17
-                else if w < 1 `shiftL` 18 then 18 else 19
-            else if w < 1 `shiftL` 21
-                then if w < 1 `shiftL` 20 then 20 else 21
-                else if w < 1 `shiftL` 22 then 22 else 23
-        else if w < 1 `shiftL` 27
-            then if w < 1 `shiftL` 25
-                then if w < 1 `shiftL` 24 then 24 else 25
-                else if w < 1 `shiftL` 26 then 26 else 27
-            else if w < 1 `shiftL` 29
-                then if w < 1 `shiftL` 28 then 28 else 29
-                else if w < 1 `shiftL` 30 then 30 else 31
+highestBitPosition :: FiniteBits a => a -> Int
+highestBitPosition a = finiteBitSize a - countLeadingZeros a
+{-# SPECIALIZE highestBitPosition :: Int -> Int #-}
 
 
 ----------------------------------------------------------------
