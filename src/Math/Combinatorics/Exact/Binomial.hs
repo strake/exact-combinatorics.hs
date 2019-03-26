@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wall -fwarn-tabs #-}
+{-# LANGUAGE PatternGuards #-}
 ----------------------------------------------------------------
 --                                                    2012.09.26
 -- |
@@ -15,8 +15,10 @@
 ----------------------------------------------------------------
 module Math.Combinatorics.Exact.Binomial (choose) where
 
+import Prelude hiding (takeWhile)
 import Data.List                       (foldl')
 import Math.Combinatorics.Exact.Primes (primes)
+import Util.Stream                     (takeWhile)
 
 {-
 <http://mathworld.wolfram.com/BinomialCoefficient.html>
@@ -87,16 +89,13 @@ choose :: (Integral a) => a -> a -> a
     Int -> Int -> Int
     #-}
 n `choose` k_
-    | n `seq` k_`seq` False = undefined
+    | Just a <- n `seq` k_`seq` Nothing = a
     | 0 < k_ && k_ < n =
         k `seq` nk `seq` sqrtN `seq`
             foldl'
                 (\acc prime -> step acc (fromIntegral prime))
                 1
                 (takeWhile (fromIntegral n >=) primes)
-        -- BUG: 'takeWhile' isn't a good producer, so we shouldn't
-        -- just @map fromIntegral@. In newer GHC my patch will make
-        -- it in for it to be a good producer (and a good consumer).
     | 0 <= k_ && k_ <= n = 1 -- N.B., @binomial_naive 0 0 == 1@
     | otherwise          = 0
     where
@@ -109,7 +108,7 @@ n `choose` k_
     sqrtN = floor (sqrt (fromIntegral n) :: Double) `asTypeOf` n
 
     step acc prime
-        | acc `seq` prime `seq` False = undefined
+        | Just a <- acc `seq` prime `seq` Nothing = a
         | prime > nk         = acc * prime
         | prime > n `quot` 2 = acc
         | prime > sqrtN      =
@@ -119,7 +118,7 @@ n `choose` k_
         | otherwise = acc * go n k 0 1
         where
         go n' k' r p
-            | n' `seq` k' `seq` r `seq` p `seq` False = undefined
+            | Just a <- n' `seq` k' `seq` r `seq` p `seq` Nothing = a
             | n' <= 0   = p
             | n' `rem` prime < (k' `rem` prime) + r
                         = go (n' `quot` prime) (k' `quot` prime) 1 $! p * prime

@@ -1,9 +1,3 @@
-{-# OPTIONS_GHC
-    -Wall
-    -fwarn-tabs
-    -fno-warn-incomplete-patterns
-    -fno-warn-name-shadowing
-    #-}
 ----------------------------------------------------------------
 --                                                    2012.02.02
 -- |
@@ -18,9 +12,13 @@
 ----------------------------------------------------------------
 module Math.Combinatorics.Exact.Primes (primes) where
 
+import Prelude hiding (head, tail, zipWith)
+import Control.Comonad.Cofree hiding (tail)
+import Control.Monad (join)
+import Data.Functor.Identity
+import Util.Stream
 
-data Wheel = Wheel {-# UNPACK #-}!Int ![Int]
-
+data Wheel = Wheel {-# UNPACK #-}!Word ![Word]
 
 -- BUG: the CAF is nice for sharing, but what about when we want
 -- fusion and to avoid sharing? Using Data.IntList seems to only
@@ -35,12 +33,12 @@ data Wheel = Wheel {-# UNPACK #-}!Int ![Int]
 --    ISSN 0956-7968
 --    <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.55.7096>
 --
-primes :: [Int]
+primes :: Stream Word
 primes = sieve wheels primes primeSquares
     where
-    primeSquares = [p*p | p <- primes]
+    primeSquares = join (*) <$> primes
 
-    wheels = Wheel 1 [1] : zipWith nextSize wheels primes
+    wheels = Wheel 1 [1] `cons` zipWith nextSize wheels primes
         where
         nextSize (Wheel s ns) p =
             Wheel (s*p) [n' | o  <- [0,s..(p-1)*s]
@@ -49,15 +47,16 @@ primes = sieve wheels primes primeSquares
                             , n' `mod` p > 0 ]
 
     -- N.B., ps and qs must be lazy. Or else the circular program is _|_.
-    sieve (Wheel s ns : ws) ps qs =
+    sieve :: Stream Wheel -> Stream Word -> Stream Word -> Stream Word
+    sieve (Cofree (Wheel s ns) (Identity ws)) ps qs =
         [ n' | o  <- s : [2*s,3*s..(head ps-1)*s]
              , n  <- ns
              , n' <- [n+o]
              , s <= 2 || noFactorIn ps qs n' ]
-        ++ sieve ws (tail ps) (tail qs)
+        `prepend` sieve ws (tail ps) (tail qs)
         where
-        -- noFactorIn :: [Int] -> [Int] -> Int -> Bool
-        noFactorIn (p:ps) (q:qs) x =
+        -- noFactorIn :: [Word] -> [Word] -> Word -> Bool
+        noFactorIn (Cofree p (Identity ps)) (Cofree q (Identity qs)) x =
             q > x || x `mod` p > 0 && noFactorIn ps qs x
 
 ----------------------------------------------------------------

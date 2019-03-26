@@ -31,24 +31,21 @@ Source-Repository head
     Location: http://community.haskell.org/~wren/exact-combinatorics
 
 ----------------------------------------------------------------
-Flag base4
-    Default:     True
-    Description: base-4.0 emits "Prelude deprecated" messages in
-                 order to get people to be explicit about which
-                 version of base they use.
-
-----------------------------------------------------------------
 Library
     Hs-Source-Dirs:  src
     Exposed-Modules: Math.Combinatorics.Exact.Primes
                    , Math.Combinatorics.Exact.Factorial
                    , Math.Combinatorics.Exact.Binomial
-    -- Data.IntList
-
-    if flag(base4)
-        Build-Depends: base >= 4 && < 5
-    else
-        Build-Depends: base < 4
+    Other-Modules:   Util.Stream
+    Build-Depends:   base >= 4 && < 5
+                   , hs-functors >= 0.1.4 && < 0.2
+    Ghc-Options:     -Wall -Wcompat -Wredundant-constraints -Wno-name-shadowing
+                     -Wincomplete-record-updates -Wincomplete-uni-patterns
+                     -Werror=incomplete-patterns
+                     -Werror=incomplete-uni-patterns
+                     -Werror=incomplete-record-updates
+                     -Werror=missing-fields
+                     -Werror=missing-methods
 
 ----------------------------------------------------------------
 Custom-Setup

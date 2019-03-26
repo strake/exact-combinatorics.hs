@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 {-# LANGUAGE CPP #-}
 ----------------------------------------------------------------
 --                                                    2012.02.02
@@ -94,7 +93,7 @@ factorial n
     -- s   == 2^{n - popCount n}
     -- go :: Int -> Int -> Int -> Int -> a -> a -> a -> a
     go k lo s hi j p r
-        | k `seq` lo `seq` s `seq` hi `seq` j `seq` p `seq` r `seq` False = undefined
+        | Just a <- k `seq` lo `seq` s `seq` hi `seq` j `seq` p `seq` r `seq` Nothing = a
         | k >= 0 =                     -- TODO: why did old version use lo/=n ?
             let lo' = n `shiftR` k     -- TODO: use shiftRL#
                 hi' = (lo' - 1) .|. 1  -- if odd lo' then lo' else lo' - 1
@@ -141,7 +140,7 @@ highestBitPosition n0
     | otherwise = go 0 n0
     where
     go d n
-        | d `seq` n `seq` False = undefined
+        | Just a <- d `seq` n `seq` Nothing = a
         | n > 0     = go (d+1) (n `shiftR` 1)
         | otherwise = d
 
