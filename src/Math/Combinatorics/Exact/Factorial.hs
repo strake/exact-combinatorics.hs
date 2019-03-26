@@ -157,7 +157,7 @@ floorLog2_Int n
 -}
 
 highestBitPosition_Int :: Int -> Int
-highestBitPosition_Int w = 
+highestBitPosition_Int w =
     if w < 1 `shiftL` 15
     then if w < 1 `shiftL` 7
         then if w < 1 `shiftL` 3

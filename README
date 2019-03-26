@@ -6,11 +6,11 @@ be able to use one of the following standard methods to install it.
 
     -- With cabal-install and without the source:
     $> cabal install exact-combinatorics
-    
+
     -- With cabal-install and with the source already:
     $> cd exact-combinatorics
     $> cabal install
-    
+
     -- Without cabal-install, but with the source already:
     $> cd exact-combinatorics
     $> runhaskell Setup.hs configure --user
