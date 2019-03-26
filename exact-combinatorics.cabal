@@ -4,7 +4,7 @@
 
 -- By and large Cabal >=1.2 is fine; but >= 1.6 gives tested-with:
 -- and source-repository:.
-Cabal-Version:  >= 1.6
+Cabal-Version:  >= 1.10
 -- We need a custom build in order to define __HADDOCK__
 Build-Type:     Custom
 
@@ -39,6 +39,7 @@ Library
     Other-Modules:   Util.Stream
     Build-Depends:   base >= 4 && < 5
                    , hs-functors >= 0.1.4 && < 0.2
+    Default-Language: Haskell2010
     Ghc-Options:     -Wall -Wcompat -Wredundant-constraints -Wno-name-shadowing
                      -Wincomplete-record-updates -Wincomplete-uni-patterns
                      -Werror=incomplete-patterns
@@ -52,4 +53,19 @@ Custom-Setup
     Setup-Depends: Cabal, base
 
 ----------------------------------------------------------------
------------------------------------------------------------ fin.
+Benchmark bench
+  Type:                exitcode-stdio-1.0
+  Hs-Source-Dirs:      bench
+  Main-Is:             Main.hs
+  Build-Depends:       base >=4.11 && <5
+                     , criterion >=1.4.1
+                     , exact-combinatorics
+  Default-Language:    Haskell2010
+  Default-Extensions:  PartialTypeSignatures
+  Ghc-Options:         -Wall -Wcompat -Wredundant-constraints -Wno-name-shadowing
+                       -Wincomplete-record-updates -Wincomplete-uni-patterns
+                       -Werror=incomplete-patterns
+                       -Werror=incomplete-uni-patterns
+                       -Werror=incomplete-record-updates
+                       -Werror=missing-fields
+                       -Werror=missing-methods
