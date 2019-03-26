@@ -18,6 +18,7 @@ module Math.Combinatorics.Exact.Binomial (choose) where
 import Prelude hiding (takeWhile)
 import Data.List                       (foldl')
 import Math.Combinatorics.Exact.Primes (primes)
+import Numeric.Natural
 import Util.Stream                     (takeWhile)
 
 {-
@@ -82,11 +83,13 @@ implementation.
 --    <http://www.jstor.org/stable/2323099>,
 --    <http://dl.acm.org/citation.cfm?id=26272>
 --
-choose :: (Integral a) => a -> a -> a
+choose :: (Num a) => Word -> Word -> a
     -- The result type could be any (Num b) if desired.
 {-# SPECIALIZE choose ::
-    Integer -> Integer -> Integer,
-    Int -> Int -> Int
+    Word -> Word -> Int,
+    Word -> Word -> Integer,
+    Word -> Word -> Natural,
+    Word -> Word -> Word
     #-}
 n `choose` k_
     | Just a <- n `seq` k_`seq` Nothing = a
@@ -95,7 +98,7 @@ n `choose` k_
             foldl'
                 (\acc prime -> step acc (fromIntegral prime))
                 1
-                (takeWhile (fromIntegral n >=) primes)
+                (takeWhile (n >=) primes)
     | 0 <= k_ && k_ <= n = 1 -- N.B., @binomial_naive 0 0 == 1@
     | otherwise          = 0
     where
@@ -103,17 +106,17 @@ n `choose` k_
     -- positive, we should use quotInt/remInt directly to avoid the
     -- extra tests (the overflow errors are not optimized away).
 
-    k     = fromIntegral $! if k_ > n `quot` 2 then n - k_ else k_
+    k     = if k_ > n `quot` 2 then n - k_ else k_
     nk    = n - k
     sqrtN = floor (sqrt (fromIntegral n) :: Double) `asTypeOf` n
 
     step acc prime
         | Just a <- acc `seq` prime `seq` Nothing = a
-        | prime > nk         = acc * prime
+        | prime > nk         = acc * fromIntegral prime
         | prime > n `quot` 2 = acc
         | prime > sqrtN      =
             if n `rem` prime < k `rem` prime
-            then acc * prime
+            then acc * fromIntegral prime
             else acc
         | otherwise = acc * go n k 0 1
         where
@@ -121,7 +124,7 @@ n `choose` k_
             | Just a <- n' `seq` k' `seq` r `seq` p `seq` Nothing = a
             | n' <= 0   = p
             | n' `rem` prime < (k' `rem` prime) + r
-                        = go (n' `quot` prime) (k' `quot` prime) 1 $! p * prime
+                        = go (n' `quot` prime) (k' `quot` prime) 1 $! p * fromIntegral prime
             | otherwise = go (n' `quot` prime) (k' `quot` prime) 0 p
 
         {- -- BENCH: apparently this is an unreliable optimization.
