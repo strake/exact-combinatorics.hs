@@ -36,7 +36,7 @@ data Wheel = Wheel {-# UNPACK #-}!Int ![Int]
 --    <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.55.7096>
 --
 primes :: [Int]
-primes = seive wheels primes primeSquares
+primes = sieve wheels primes primeSquares
     where
     primeSquares = [p*p | p <- primes]
 
@@ -49,12 +49,12 @@ primes = seive wheels primes primeSquares
                             , n' `mod` p > 0 ]
 
     -- N.B., ps and qs must be lazy. Or else the circular program is _|_.
-    seive (Wheel s ns : ws) ps qs =
+    sieve (Wheel s ns : ws) ps qs =
         [ n' | o  <- s : [2*s,3*s..(head ps-1)*s]
              , n  <- ns
              , n' <- [n+o]
              , s <= 2 || noFactorIn ps qs n' ]
-        ++ seive ws (tail ps) (tail qs)
+        ++ sieve ws (tail ps) (tail qs)
         where
         -- noFactorIn :: [Int] -> [Int] -> Int -> Bool
         noFactorIn (p:ps) (q:qs) x =
