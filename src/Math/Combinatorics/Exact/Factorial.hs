@@ -79,7 +79,7 @@ factorial_stirling n
 -- >     where
 -- >     q k = product [j | forall j, n*2^(-k) < j <= n*2^(-k+1), odd j]
 --
-factorial :: (Integral a, Bits a) => Int -> a
+factorial :: (Integral a, Bits a) => Word -> a
 factorial n
     | n < 0     = 0
     | n < 2     = 1
@@ -91,7 +91,7 @@ factorial n
     -- p   == q1 * q2 * ... * qK
     -- r   == (q1 ^ K) * (q2 ^ (K-1)) * ... * (qK ^ 1)
     -- s   == 2^{n - popCount n}
-    -- go :: Int -> Int -> Int -> Int -> a -> a -> a -> a
+    -- go :: Int -> Word -> Word -> Word -> a -> a -> a -> a
     go k lo s hi j p r
         | Just a <- k `seq` lo `seq` s `seq` hi `seq` j `seq` p `seq` r `seq` Nothing = a
         | k >= 0 =                     -- TODO: why did old version use lo/=n ?
@@ -107,12 +107,12 @@ factorial n
                 else   go (k - 1) lo' (s + lo) hi' j  p  r
         --
         -- fromIntegral s /= fromIntegral n - popCount (fromIntegral n) = error "factorial_splitRecursive: bug in the computation of n - popCount n"
-        | otherwise = r `shiftL` s
+        | otherwise = r `shiftL` fromIntegral s
 
     -- | The product of odd @j@s between n/2^k and 2*n/2^k. @len@
     -- is the count of @j@ terms to multiply, where the @j@ state
     -- argument is the largest previously used term.
-    partialProduct :: (Integral a) => Int -> a -> (a,a)
+    -- partialProduct :: (Integral a) => Word -> a -> (a,a)
     partialProduct len j
         | half == 0 = (,) <!>  (j+2)        <!> (j+2)
         | len  == 2 = (,) <!> ((j+2)*(j+4)) <!> (j+4)
@@ -134,7 +134,7 @@ floorLog2 n
 
 highestBitPosition :: FiniteBits a => a -> Int
 highestBitPosition a = finiteBitSize a - countLeadingZeros a
-{-# SPECIALIZE highestBitPosition :: Int -> Int #-}
+{-# SPECIALIZE highestBitPosition :: Word -> Int #-}
 
 
 ----------------------------------------------------------------
