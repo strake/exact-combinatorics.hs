@@ -191,31 +191,6 @@ factorial_primeSwing n0
         , 121645100408832000, 2432902008176640000 ]
 
 
--- Added to Bits class in base-4.5.0.0==ghc-7.4.1
--- cf <http://wiki.cs.pdx.edu/forge/popcount.html>
--- cf <http://en.wikipedia.org/wiki/Hamming_weight>
--- | The number of set bits.
-popCount :: Int -> Int
-popCount x0 =
-    let x1 = x0 - w2i ((w1 .&. i2w x0) `shiftR` 1)
-        x2 = (x1 .&. m2) + ((x1 `shiftR` 2) .&. m2)
-        x3 = (x2 + (x2 `shiftR` 4)) .&. m4
-        x4 = x3 + (x3 `shiftR` 8)
-        x5 = x4 + (x4 `shiftR` 16)
-        x6 = x5 + (x5 `shiftR` 32) -- for 64-bit platforms
-    in x6 .&. 0x7f
-    where
-    i2w :: Int -> Word
-    i2w = fromIntegral
-
-    w2i :: Word -> Int
-    w2i = fromIntegral
-
-    w1 = 0xaaaaaaaaaaaaaaaa    -- binary: 0101...
-    -- m1 = 0x5555555555555555 -- binary: 1010...
-    m2 = 0x3333333333333333    -- binary: 11001100...
-    m4 = 0x0f0f0f0f0f0f0f0f    -- binary: 11110000...
-
 factorial_parallelPrimeSwing
 -}
 ----------------------------------------------------------------
