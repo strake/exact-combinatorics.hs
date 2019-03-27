@@ -35,11 +35,11 @@ data Wheel = Wheel {-# UNPACK #-}!Word ![Word]
 --
 primes :: Stream Word
 primes = sieve wheels primes primeSquares
-    where
+  where
     primeSquares = join (*) <$> primes
 
     wheels = Wheel 1 [1] `cons` zipWith nextSize wheels primes
-        where
+      where
         nextSize (Wheel s ns) p =
             Wheel (s*p) [n' | o  <- [0,s..(p-1)*s]
                             , n  <- ns
@@ -54,7 +54,7 @@ primes = sieve wheels primes primeSquares
              , n' <- [n+o]
              , s <= 2 || noFactorIn ps qs n' ]
         `prepend` sieve ws (tail ps) (tail qs)
-        where
+      where
         -- noFactorIn :: [Word] -> [Word] -> Word -> Bool
         noFactorIn (Cofree p (Identity ps)) (Cofree q (Identity qs)) x =
             q > x || x `mod` p > 0 && noFactorIn ps qs x

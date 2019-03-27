@@ -83,7 +83,6 @@ implementation.
 --    <http://dl.acm.org/citation.cfm?id=26272>
 --
 choose :: (Num a) => Word -> Word -> a
-    -- The result type could be any (Num b) if desired.
 {-# SPECIALIZE choose ::
     Word -> Word -> Int,
     Word -> Word -> Integer,
@@ -92,20 +91,16 @@ choose :: (Num a) => Word -> Word -> a
     #-}
 n `choose` k_
     | Just a <- n `seq` k_`seq` Nothing = a
-    | 0 < k_ && k_ < n =
-        k `seq` nk `seq` sqrtN `seq`
-            foldl'
-                (\acc prime -> step acc (fromIntegral prime))
-                1
-                (takeWhile (n >=) primes)
+    | 0 < k_ && k_ < n   = k `seq` nk `seq` sqrtN `seq`
+                           foldl' step 1 (takeWhile (n >=) primes)
     | 0 <= k_ && k_ <= n = 1 -- N.B., @binomial_naive 0 0 == 1@
     | otherwise          = 0
-    where
+  where
     -- TODO: since we know the second operands to quot/rem are
     -- positive, we should use quotInt/remInt directly to avoid the
     -- extra tests (the overflow errors are not optimized away).
 
-    k     = if k_ > n `quot` 2 then n - k_ else k_
+    k | k_ > n `quot` 2 = n - k_ | True = k_
     nk    = n - k
     sqrtN = floor (sqrt (fromIntegral n) :: Double) `asTypeOf` n
 
@@ -113,25 +108,24 @@ n `choose` k_
         | Just a <- acc `seq` prime `seq` Nothing = a
         | prime > nk         = acc * fromIntegral prime
         | prime > n `quot` 2 = acc
-        | prime > sqrtN      =
-            if n `rem` prime < k `rem` prime
-            then acc * fromIntegral prime
-            else acc
+        | prime > sqrtN      = case (n `rem` prime) `compare` (k `rem` prime) of
+            LT -> acc * fromIntegral prime
+            _  -> acc
         | otherwise = acc * go n k 0 1
-        where
+      where
         go n' k' r p
             | Just a <- n' `seq` k' `seq` r `seq` p `seq` Nothing = a
             | n' <= 0   = p
-            | n' `rem` prime < (k' `rem` prime) + r
+            | n' `rem` prime < k' `rem` prime + r
                         = go (n' `quot` prime) (k' `quot` prime) 1 $! p * fromIntegral prime
             | otherwise = go (n' `quot` prime) (k' `quot` prime) 0 p
 
         {- -- BENCH: apparently this is an unreliable optimization.
         | otherwise = acc * (prime ^ go n k 0 0)
-        where
+      where
         go n' k' r p
             | n' <= 0   = p `asTypeOf` acc
-            | n' `rem` prime < (k' `rem` prime) + r
+            | n' `rem` prime < k' `rem` prime + r
                         = go (n' `quot` prime) (k' `quot` prime) 1 $! p+1
             | otherwise = go (n' `quot` prime) (k' `quot` prime) 0 p
         -}

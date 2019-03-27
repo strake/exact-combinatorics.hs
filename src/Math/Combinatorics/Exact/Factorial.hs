@@ -49,7 +49,7 @@ factorial_stirling :: (Integral a) => a -> a
 factorial_stirling n
     | n < 0     = 0
     | otherwise = ceiling (sqrt (2 * pi * n') * (n' / exp 1) ** n')
-    where
+  where
     n' :: Double
     n' = fromIntegral n
 -}
@@ -60,7 +60,7 @@ factorial_stirling n
     n!  = 2^{n - popCount n}
         * \prod_{k \geq 1} \left(
               \prod_{n/2^k < j \leq 2*n/2^k}
-                  if odd j then j else 1
+                  bool 1 j (odd j)
           \right)^k
 -}
 
@@ -76,15 +76,14 @@ factorial_stirling n
 --
 -- > factorial n =
 -- >     2^(n - popCount n) * product [(q k)^k | forall k, k >= 1]
--- >     where
+-- >   where
 -- >     q k = product [j | forall j, n*2^(-k) < j <= n*2^(-k+1), odd j]
 --
 factorial :: (Integral a, Bits a) => Word -> a
 factorial n
-    | n < 0     = 0
     | n < 2     = 1
     | otherwise = go (highestBitPosition n - 1) 0 0 1 1 1 1
-    where
+  where
     -- lo  == n/2^(k+1)
     -- lo' == n/2^k
     -- qk  == product of odd @j@s for @k@ in [1..K]
@@ -96,15 +95,13 @@ factorial n
         | Just a <- k `seq` lo `seq` s `seq` hi `seq` j `seq` p `seq` r `seq` Nothing = a
         | k >= 0 =                     -- TODO: why did old version use lo/=n ?
             let lo' = n `shiftR` k     -- TODO: use shiftRL#
-                hi' = (lo' - 1) .|. 1  -- if odd lo' then lo' else lo' - 1
-                len = (hi' - hi) `div` 2 -- TODO: why not (`shiftR`1) or (`quot`2) ?
-            in if len > 0
-                then let
-                    (q, j') = partialProduct len j
-                    p' = p * q
-                    r' = r * p'
-                    in go (k - 1) lo' (s + lo) hi' j' p' r'
-                else   go (k - 1) lo' (s + lo) hi' j  p  r
+                hi' = (lo' - 1) .|. 1
+            in case (hi' - hi) `div` 2 of
+                0 -> go (k - 1) lo' (s + lo) hi' j p r
+                len -> let (q, j') = partialProduct len j
+                           p' = p * q
+                           r' = r * p'
+                       in go (k - 1) lo' (s + lo) hi' j' p' r'
         --
         -- fromIntegral s /= fromIntegral n - popCount (fromIntegral n) = error "factorial_splitRecursive: bug in the computation of n - popCount n"
         | otherwise = r `shiftL` fromIntegral s
@@ -120,7 +117,7 @@ factorial n
             let (qL, j' ) = partialProduct (len - half) j
                 (qR, j'') = partialProduct half         j'
             in (,) <!> (qL*qR) <!> j''
-        where
+      where
         half = len `quot` 2
 
         (<!>) = ($!) -- fix associativity
@@ -144,7 +141,7 @@ factorial_primeSwing n0
     | n0 < 0    = 0
     | n0 < 20   = smallFactorials `unsafeAt` n0
     | otherwise = go n0 `shiftL` (n0 - popCount n0)
-    where
+  where
     go n
         | n < 2     = 1
         | otherwise = (go (n `div` 2) ^ 2) * swing n
