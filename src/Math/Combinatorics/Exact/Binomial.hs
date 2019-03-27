@@ -115,19 +115,23 @@ n `choose` k_
       where
         go n' k' r p
             | Just a <- n' `seq` k' `seq` r `seq` p `seq` Nothing = a
-            | n' <= 0   = p
-            | n' `rem` prime < k' `rem` prime + r
-                        = go (n' `quot` prime) (k' `quot` prime) 1 $! p * fromIntegral prime
-            | otherwise = go (n' `quot` prime) (k' `quot` prime) 0 p
+            | n' <= 0     = p
+            | nr < kr + r = go nq kq 1 $! p * fromIntegral prime
+            | otherwise   = go nq kq 0 p
+          where
+            ~(nq, nr) = n' `quotRem` prime
+            ~(kq, kr) = k' `quotRem` prime
 
         {- -- BENCH: apparently this is an unreliable optimization.
         | otherwise = acc * (prime ^ go n k 0 0)
       where
         go n' k' r p
-            | n' <= 0   = p `asTypeOf` acc
-            | n' `rem` prime < k' `rem` prime + r
-                        = go (n' `quot` prime) (k' `quot` prime) 1 $! p+1
-            | otherwise = go (n' `quot` prime) (k' `quot` prime) 0 p
+            | n' <= 0     = p `asTypeOf` acc
+            | nr < kr + r = go nq kq 1 $! p+1
+            | otherwise   = go nq kq 0 p
+          where
+            ~(nq, nr) = n' `quotRem` prime
+            ~(kq, kr) = k' `quotRem` prime
         -}
 
 ----------------------------------------------------------------
